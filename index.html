@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>✂️ Flashcard Maker — Print & Cut</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; top: 0; left: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+  <!-- EDITOR -->
+  <div class="no-print max-w-3xl mx-auto p-6">
+
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold mb-1">✂️ Flashcard Maker</h1>
+      <p class="text-gray-500 text-sm">
+        Questions print on <strong>page 1</strong>, matching answers on <strong>page 2</strong>.
+        Print double-sided, cut along the dashed lines — no glue, no laminator needed!
+      </p>
+    </div>
+
+    <!-- Settings -->
+    <div class="flex flex-wrap gap-4 mb-5 items-end">
+      <div class="flex-1 min-w-[150px]">
+        <label class="text-xs font-semibold text-gray-500 block mb-1">Color Theme</label>
+        <select id="theme-select" class="w-full rounded-lg border border-gray-300 bg-white text-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="classic">Classic (White / Grey)</option>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          <option value="pink">Pink</option>
+          <option value="purple">Purple</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="text-xs font-semibold text-gray-500 block mb-1">Cards per Row</label>
+        <select id="cols-select" class="w-full rounded-lg border border-gray-300 bg-white text-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="2" selected>2 per row (bigger)</option>
+          <option value="3">3 per row (smaller)</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="text-xs font-semibold text-gray-500 block mb-1">Rows per Page</label>
+        <select id="rows-select" class="w-full rounded-lg border border-gray-300 bg-white text-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="2">2 rows</option>
+          <option value="3" selected>3 rows</option>
+          <option value="4">4 rows</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[180px]">
+        <label class="text-xs font-semibold text-gray-500 block mb-1">Deck Title (optional)</label>
+        <input type="text" id="deck-label" placeholder="e.g. Spanish Vocab" maxlength="50"
+          class="w-full rounded-lg border border-gray-300 bg-white text-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </div>
+    </div>
+
+    <!-- Bulk Import -->
+    <div class="mb-5 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-semibold">Bulk Import</span>
+        <span class="text-xs text-gray-400">Format: <code class="bg-gray-100 px-1 rounded">question | answer</code> — one per line</span>
+      </div>
+      <textarea id="bulk-input" rows="4"
+        placeholder="What is H2O? | Water&#10;Capital of France | Paris&#10;What year did WW2 end? | 1945"
+        class="w-full rounded-lg border border-gray-200 bg-gray-50 text-gray-800 px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"></textarea>
+      <button onclick="importBulk()"
+        class="mt-2 px-4 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-semibold transition">
+        ⬆ Import Cards
+      </button>
+    </div>
+
+    <!-- Card List -->
+    <div id="card-list" class="space-y-2 mb-4"></div>
+
+    <!-- Add Card -->
+    <button onclick="addCard()"
+      class="w-full border-2 border-dashed border-gray-300 rounded-xl py-3 text-sm text-gray-400 hover:border-blue-400 hover:text-blue-500 transition font-semibold">
+      + Add Card
+    </button>
+
+    <!-- Action Bar -->
+    <div class="mt-6 flex gap-3 flex-wrap">
+      <button onclick="printCards()"
+        class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition shadow">
+        🖨️ Print Cards
+      </button>
+      <button onclick="clearAll()"
+        class="px-5 py-2.5 border border-gray-300 text-gray-500 rounded-xl font-semibold text-sm hover:bg-gray-100 transition">
+        🗑️ Clear All
+      </button>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-6 bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-gray-600 space-y-1">
+      <p class="font-semibold text-gray-800 mb-2">📋 How to print correctly:</p>
+      <p>1. Click <strong>Print Cards</strong> above.</p>
+      <p>2. In the print dialog, enable <strong>Two-sided / Duplex printing</strong> → <strong>Flip on Long Edge</strong>.</p>
+      <p>3. Print and cut along the dashed lines. Each card will have the question on the front and the matching answer on the back!</p>
+      <p class="mt-2 text-amber-600">⚠️ Answers are <strong>mirrored</strong> on page 2 — this is intentional so they align correctly after flipping the page.</p>
+    </div>
+
+    <p class="mt-4 text-center text-xs text-gray-300">
+      Made with ❤️ — open source, no account needed
+    </p>
+  </div>
+
+  <!-- PRINT AREA -->
+  <div id="print-area" style="display:none;"></div>
+
+  <script>
+    const THEMES = {
+      classic: { front: '#ffffff', frontText: '#111111', back: '#f0f0f0', backText: '#222222', border: '#aaaaaa', label: '#999' },
+      blue:    { front: '#dbeafe', frontText: '#1e3a8a', back: '#eff6ff', backText: '#1e40af', border: '#93c5fd', label: '#6ea8e0' },
+      green:   { front: '#d1fae5', frontText: '#064e3b', back: '#ecfdf5', backText: '#065f46', border: '#6ee7b7', label: '#4db88c' },
+      yellow:  { front: '#fef9c3', frontText: '#78350f', back: '#fffbeb', backText: '#92400e', border: '#fcd34d', label: '#d4a800' },
+      pink:    { front: '#fce7f3', frontText: '#831843', back: '#fdf2f8', backText: '#9d174d', border: '#f9a8d4', label: '#e06eab' },
+      purple:  { front: '#ede9fe', frontText: '#3b0764', back: '#f5f3ff', backText: '#4c1d95', border: '#c4b5fd', label: '#9f7aea' },
+    };
+
+    let cards = [];
+
+    function uid() { return Date.now() + Math.random(); }
+
+    function addCard(front = '', back = '') {
+      cards.push({ id: uid(), front, back });
+      renderList();
+    }
+
+    function removeCard(id) {
+      cards = cards.filter(c => c.id !== id);
+      renderList();
+    }
+
+    function updateCard(id, field, value) {
+      const c = cards.find(c => c.id === id);
+      if (c) c[field] = value;
+    }
+
+    function renderList() {
+      const list = document.getElementById('card-list');
+      if (cards.length === 0) {
+        list.innerHTML = '<p class="text-center text-xs text-gray-400 py-6">No cards yet — add one below or use bulk import.</p>';
+        return;
+      }
+      list.innerHTML = cards.map((card, i) => `
+        <div class="flex gap-2 items-center bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
+          <span class="text-xs text-gray-400 w-6 text-center font-mono shrink-0">${i + 1}</span>
+          <div class="flex-1 flex gap-2 items-center min-w-0">
+            <div class="flex-1 min-w-0">
+              <div class="text-[10px] font-semibold text-gray-400 mb-0.5">QUESTION (front)</div>
+              <input type="text" value="${esc(card.front)}" placeholder="Question / term…"
+                oninput="updateCard(${card.id}, 'front', this.value)"
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 text-gray-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <span class="text-gray-300 text-sm shrink-0">→</span>
+            <div class="flex-1 min-w-0">
+              <div class="text-[10px] font-semibold text-gray-400 mb-0.5">ANSWER (back)</div>
+              <input type="text" value="${esc(card.back)}" placeholder="Answer / definition…"
+                oninput="updateCard(${card.id}, 'back', this.value)"
+                class="w-full rounded-lg border border-gray-200 bg-gray-50 text-gray-800 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+          </div>
+          <button onclick="removeCard(${card.id})"
+            class="shrink-0 text-gray-300 hover:text-red-400 text-xl leading-none px-1 transition">×</button>
+        </div>
+      `).join('');
+    }
+
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function importBulk() {
+      const raw = document.getElementById('bulk-input').value.trim();
+      if (!raw) return;
+      raw.split('\n').forEach(line => {
+        const parts = line.split('|');
+        if (parts.length >= 2) {
+          addCard(parts[0].trim(), parts.slice(1).join('|').trim());
+        } else if (parts[0].trim()) {
+          addCard(parts[0].trim(), '');
+        }
+      });
+      document.getElementById('bulk-input').value = '';
+    }
+
+    function clearAll() {
+      if (cards.length && !confirm('Remove all cards?')) return;
+      cards = [];
+      renderList();
+    }
+
+    function printCards() {
+      const valid = cards.filter(c => c.front || c.back);
+      if (!valid.length) { alert('Add some cards first!'); return; }
+
+      const theme   = THEMES[document.getElementById('theme-select').value];
+      const cols    = parseInt(document.getElementById('cols-select').value);
+      const rows    = parseInt(document.getElementById('rows-select').value);
+      const label   = document.getElementById('deck-label').value.trim();
+      const perSheet = cols * rows;
+
+      // Split into sheets
+      const sheets = [];
+      for (let i = 0; i < valid.length; i += perSheet) {
+        sheets.push(valid.slice(i, i + perSheet));
+      }
+
+      const css = `
+        <style>
+          @page { margin: 8mm; size: A4 portrait; }
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { font-family: Arial, sans-serif; }
+          .page { width: 100%; page-break-after: always; }
+          .page:last-child { page-break-after: auto; }
+          .page-header {
+            text-align: center; font-size: 9px; color: ${theme.label};
+            margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase;
+          }
+          .grid {
+            display: grid;
+            grid-template-columns: repeat(${cols}, 1fr);
+            width: 100%;
+          }
+          .cell {
+            aspect-ratio: 3 / 2;
+            border: 2px dashed ${theme.border};
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 12px;
+            position: relative; word-break: break-word; line-height: 1.4;
+          }
+          .cell-num  { position: absolute; top: 3px; left: 5px;  font-size: 7px; color: ${theme.label}; opacity: .7; }
+          .cell-side { position: absolute; top: 3px; right: 5px; font-size: 7px; color: ${theme.label}; opacity: .7; }
+          .front { background: ${theme.front}; color: ${theme.frontText}; font-weight: 700; font-size: ${cols === 3 ? '11px' : '14px'}; }
+          .back  { background: ${theme.back};  color: ${theme.backText};  font-size: ${cols === 3 ? '10px' : '13px'}; }
+          .empty { border-style: dotted; opacity: .2; background: #f9f9f9; }
+        </style>
+      `;
+
+      let html = css;
+
+      sheets.forEach((sheet, si) => {
+        const sheetNum = si + 1;
+
+        // --- FRONT PAGE (questions) ---
+        html += `<div class="page">`;
+        if (label) html += `<div class="page-header">✂ ${esc(label)} — Sheet ${sheetNum} · QUESTIONS</div>`;
+        html += `<div class="grid">`;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const idx  = r * cols + c;
+            const card = sheet[idx];
+            const num  = si * perSheet + idx + 1;
+            if (card) {
+              html += `<div class="cell front"><span class="cell-num">#${num}</span><span class="cell-side">Q</span>${esc(card.front || '(blank)')}</div>`;
+            } else {
+              html += `<div class="cell empty"></div>`;
+            }
+          }
+        }
+        html += `</div></div>`;
+
+        // --- BACK PAGE (answers — columns mirrored for duplex flip on long edge) ---
+        html += `<div class="page">`;
+        if (label) html += `<div class="page-header">✂ ${esc(label)} — Sheet ${sheetNum} · ANSWERS</div>`;
+        html += `<div class="grid">`;
+        for (let r = 0; r < rows; r++) {
+          // Reverse column order so answers align after flipping the sheet
+          for (let c = cols - 1; c >= 0; c--) {
+            const idx  = r * cols + c;
+            const card = sheet[idx];
+            const num  = si * perSheet + idx + 1;
+            if (card) {
+              html += `<div class="cell back"><span class="cell-num">#${num}</span><span class="cell-side">A</span>${esc(card.back || '(blank)')}</div>`;
+            } else {
+              html += `<div class="cell empty"></div>`;
+            }
+          }
+        }
+        html += `</div></div>`;
+      });
+
+      const pa = document.getElementById('print-area');
+      pa.innerHTML = html;
+      pa.style.display = 'block';
+      window.print();
+      pa.style.display = 'none';
+    }
+
+    // Starter example cards
+    addCard('What is photosynthesis?', 'Converting sunlight into energy using chlorophyll');
+    addCard('Capital of France', 'Paris');
+    addCard('H₂O', 'Water — 2 hydrogen + 1 oxygen atom');
+    renderList();
+  </script>
+</body>
+</html>
