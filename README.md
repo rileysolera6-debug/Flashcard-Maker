@@ -2,11 +2,11 @@
 
 A simple, free, browser-based flashcard maker — **no account, no install, no laminator needed**. Just type your cards, print, and cut.
 
-![Flashcard Maker screenshot](https://raw.githubusercontent.com/YOUR-USERNAME/flashcard-maker/main/screenshot.png)
+![Flashcard Maker screenshot](https://raw.githubusercontent.com/rileysolera6-debug/flashcard-maker/main/screenshot.png)
 
 ## 🌐 Live Demo
 
-👉 **[Try it on GitHub Pages](https://YOUR-USERNAME.github.io/flashcard-maker)**
+👉 **[Try it on GitHub Pages](https://rileysolera6-debug.github.io/flashcard-maker)**
 
 ---
 
@@ -56,7 +56,7 @@ H₂O | Water — 2 hydrogen + 1 oxygen atom
 No build step needed. Just open the file:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/flashcard-maker.git
+git clone https://github.com/rileysolera6-debug/flashcard-maker.git
 cd flashcard-maker
 # Open index.html in your browser
 start index.html        # Windows
@@ -64,7 +64,7 @@ open index.html         # macOS
 xdg-open index.html     # Linux
 ```
 
-Or use it directly via [GitHub Pages](https://YOUR-USERNAME.github.io/flashcard-maker) — nothing to install.
+Or use it directly via [GitHub Pages](https://rileysolera6-debug.github.io/flashcard-maker) — nothing to install.
 
 ---
 
